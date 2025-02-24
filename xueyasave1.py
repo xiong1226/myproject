@@ -8,18 +8,12 @@ import queue
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import matplotlib.pyplot as plt
-from PIL import Image, ImageTk
 
 class BloodPressureMonitor:
     def __init__(self, root):
         self.root = root
         self.root.title("参数设置和日志界面")
         self.root.geometry("800x600")
-
-        self.background_image = Image.open("221.jpg")  # 确保图片路径正确
-        self.background_photo = ImageTk.PhotoImage(self.background_image)
-        self.background_label = tk.Label(self.root, image=self.background_photo)
-        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         self.stop_event = threading.Event()
         self.log_queue = queue.Queue()
@@ -83,29 +77,17 @@ class BloodPressureMonitor:
         self.log_text.config(yscrollcommand=scrollbar.set)
 
         # 创建开始和停止按钮
-        start_icon = Image.open("ooo.png")  # 确保图片路径正确
-        start_icon = start_icon.resize((30, 30), Image.LANCZOS)
-        self.start_photo = ImageTk.PhotoImage(start_icon)
         self.start_button = ttk.Button(self.root, text="开始", command=self.start_logging)
         self.start_button.grid(row=2, column=0, padx=10, pady=10, sticky="e")
 
-        stop_icon = Image.open("ooo.png")  # 确保图片路径正确
-        stop_icon = stop_icon.resize((30, 30), Image.LANCZOS)
-        self.stop_photo = ImageTk.PhotoImage(stop_icon)
         self.stop_button = ttk.Button(self.root, text="停止", command=self.stop_logging, state=tk.DISABLED)
         self.stop_button.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
         # 创建清理日志按钮
-        clear_icon = Image.open("ooo.png")  # 确保图片路径正确
-        clear_icon = clear_icon.resize((30, 30), Image.LANCZOS)
-        self.clear_photo = ImageTk.PhotoImage(clear_icon)
         self.clear_button = ttk.Button(self.root, text="清理日志", command=self.clear_log)
         self.clear_button.grid(row=2, column=2, padx=10, pady=10, sticky="w")
 
         # 创建绘图按钮
-        plot_icon = Image.open("ooo.png")  # 确保图片路径正确
-        plot_icon = plot_icon.resize((30, 30), Image.LANCZOS)
-        self.plot_photo = ImageTk.PhotoImage(plot_icon)
         self.plot_button = ttk.Button(self.root, text="绘图", command=self.plot_data)
         self.plot_button.grid(row=2, column=3, padx=10, pady=10, sticky="w")
 
