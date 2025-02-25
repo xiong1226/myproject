@@ -29,6 +29,8 @@ class BloodPressureMonitor:
         self.systolic_pressures = []
         self.timestamps = []
         self.statuses = []  # 新增列表用于存储血压状态
+        self.heart_rates = []  # 新增列表用于存储心率数据
+        self.heart_rate_statuses = []  # 新增列表用于存储心率状态
 
         self.create_widgets()
         self.setup_layout()
@@ -138,6 +140,14 @@ class BloodPressureMonitor:
         else:
             return "未知状态"
 
+    def determine_heart_rate_status(self, heart_rate):
+        if 60 <= heart_rate <= 100:
+            return "正常心率"
+        elif heart_rate < 60:
+            return "心动过缓"
+        else:
+            return "心动过速"
+
     def start_logging(self):
         try:
             sampling_period = float(self.param_entry6.get())
@@ -238,9 +248,17 @@ class BloodPressureMonitor:
 
                 self.statuses.append(status)  # 将状态添加到列表中
 
+                # 生成心率数据
+                heart_rate = random.randint(40, 120)  # 心率范围40-120
+                heart_rate_status = self.determine_heart_rate_status(heart_rate)
+
+                self.heart_rates.append(heart_rate)
+                self.heart_rate_statuses.append(heart_rate_status)
+
                 log_message = (f"时间: {timestamp} - "
                                f"舒张压: {diastolic_pressure:.2f}, 收缩压: {systolic_pressure:.2f}, "
-                               f"状态: {status}\n")
+                               f"心率: {heart_rate}, 心率状态: {heart_rate_status}, "
+                               f"血压状态: {status}\n")
                 self.log_queue.put(log_message)
 
                 time.sleep(sampling_period)
@@ -278,7 +296,9 @@ class BloodPressureMonitor:
             '时间': self.timestamps,
             '舒张压': rounded_diastolic_pressures,
             '收缩压': rounded_systolic_pressures,
-            '状态': self.statuses  # 添加状态列
+            '心率': self.heart_rates,
+            '心率状态': self.heart_rate_statuses,
+            '血压状态': self.statuses
         }
         df = pd.DataFrame(data)
 
@@ -320,6 +340,18 @@ class BloodPressureMonitor:
         plt.xlabel('收缩压')
         plt.ylabel('舒张压')
         plt.title('血压数据点分布')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+        # 绘制心率数据
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.timestamps, self.heart_rates, label='心率')
+        plt.axhline(y=60, color='red', linestyle='--', label='正常心率下限')
+        plt.axhline(y=100, color='red', linestyle='--', label='正常心率上限')
+        plt.xlabel('时间')
+        plt.ylabel('心率 (次/分钟)')
+        plt.title('心率变化')
         plt.legend()
         plt.grid(True)
         plt.show()
