@@ -31,6 +31,8 @@ class BloodPressureMonitor:
         self.statuses = []  # 新增列表用于存储血压状态
         self.heart_rates = []  # 新增列表用于存储心率数据
         self.heart_rate_statuses = []  # 新增列表用于存储心率状态
+        self.temperatures = []  # 新增列表用于存储体温数据
+        self.temperature_statuses = []  # 新增列表用于存储体温状态
 
         self.create_widgets()
         self.setup_layout()
@@ -148,6 +150,14 @@ class BloodPressureMonitor:
         else:
             return "心动过速"
 
+    def determine_temperature_status(self, temperature):
+        if 36.1 <= temperature <= 37.2:
+            return "正常体温"
+        elif temperature < 36.1:
+            return "体温过低"
+        else:
+            return "体温过高"
+
     def start_logging(self):
         try:
             sampling_period = float(self.param_entry6.get())
@@ -255,9 +265,17 @@ class BloodPressureMonitor:
                 self.heart_rates.append(heart_rate)
                 self.heart_rate_statuses.append(heart_rate_status)
 
+                # 生成体温数据
+                temperature = round(random.uniform(35.5, 38.0), 1)  # 体温范围35.5-38.0
+                temperature_status = self.determine_temperature_status(temperature)
+
+                self.temperatures.append(temperature)
+                self.temperature_statuses.append(temperature_status)
+
                 log_message = (f"时间: {timestamp} - "
                                f"舒张压: {diastolic_pressure:.2f}, 收缩压: {systolic_pressure:.2f}, "
                                f"心率: {heart_rate}, 心率状态: {heart_rate_status}, "
+                               f"体温: {temperature}, 体温状态: {temperature_status}, "
                                f"血压状态: {status}\n")
                 self.log_queue.put(log_message)
 
@@ -298,6 +316,8 @@ class BloodPressureMonitor:
             '收缩压': rounded_systolic_pressures,
             '心率': self.heart_rates,
             '心率状态': self.heart_rate_statuses,
+            '体温': self.temperatures,
+            '体温状态': self.temperature_statuses,
             '血压状态': self.statuses
         }
         df = pd.DataFrame(data)
@@ -352,6 +372,18 @@ class BloodPressureMonitor:
         plt.xlabel('时间')
         plt.ylabel('心率 (次/分钟)')
         plt.title('心率变化')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+        # 绘制体温数据
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.timestamps, self.temperatures, label='体温')
+        plt.axhline(y=36.1, color='red', linestyle='--', label='正常体温下限')
+        plt.axhline(y=37.2, color='red', linestyle='--', label='正常体温上限')
+        plt.xlabel('时间')
+        plt.ylabel('体温 (°C)')
+        plt.title('体温变化')
         plt.legend()
         plt.grid(True)
         plt.show()
