@@ -33,6 +33,7 @@ class BloodPressureMonitor:
         self.heart_rate_statuses = []  # 新增列表用于存储心率状态
         self.temperatures = []  # 新增列表用于存储体温数据
         self.temperature_statuses = []  # 新增列表用于存储体温状态
+        self.calories_burned = []  # 新增列表用于存储卡路里消耗数据
 
         self.create_widgets()
         self.setup_layout()
@@ -272,10 +273,15 @@ class BloodPressureMonitor:
                 self.temperatures.append(temperature)
                 self.temperature_statuses.append(temperature_status)
 
+                # 生成卡路里消耗数据
+                calories_burned = random.uniform(0, 500)  # 卡路里消耗范围0-500
+                self.calories_burned.append(calories_burned)
+
                 log_message = (f"时间: {timestamp} - "
                                f"舒张压: {diastolic_pressure:.2f}, 收缩压: {systolic_pressure:.2f}, "
                                f"心率: {heart_rate}, 心率状态: {heart_rate_status}, "
                                f"体温: {temperature}, 体温状态: {temperature_status}, "
+                               f"卡路里消耗: {calories_burned:.2f}, "
                                f"血压状态: {status}\n")
                 self.log_queue.put(log_message)
 
@@ -309,6 +315,7 @@ class BloodPressureMonitor:
         # 对数据进行保留一位小数的处理
         rounded_diastolic_pressures = [round(dp, 1) for dp in self.diastolic_pressures]
         rounded_systolic_pressures = [round(sp, 1) for sp in self.systolic_pressures]
+        rounded_calories_burned = [round(cb, 1) for cb in self.calories_burned]  # 卡路里消耗数据保留一位小数
 
         data = {
             '时间': self.timestamps,
@@ -318,6 +325,7 @@ class BloodPressureMonitor:
             '心率状态': self.heart_rate_statuses,
             '体温': self.temperatures,
             '体温状态': self.temperature_statuses,
+            '卡路里消耗': rounded_calories_burned,  # 新增卡路里消耗列
             '血压状态': self.statuses
         }
         df = pd.DataFrame(data)
