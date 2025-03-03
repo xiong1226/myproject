@@ -82,18 +82,18 @@ class BloodPressureMonitor:
         self.log_frame = ttk.LabelFrame(self.root, text="日志")
         self.log_frame.grid(row=1, column=0, columnspan=2, padx=20, pady=10, sticky="nsew")
 
-        self.log_text = tk.Text(self.log_frame, wrap=tk.WORD)
-        self.log_text.pack(fill=tk.BOTH, expand=True)
-        scrollbar = ttk.Scrollbar(self.log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.log_text.config(yscrollcommand=scrollbar.set)
-
         # 添加日志背景图片
         log_background_image = Image.open("1.jpg")  # 确保图片路径正确
         log_background_photo = ImageTk.PhotoImage(log_background_image)
         self.log_background_label = tk.Label(self.log_frame, image=log_background_photo)
         self.log_background_label.image = log_background_photo  # 保持对图片的引用，防止被垃圾回收
         self.log_background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        self.log_text = tk.Text(self.log_frame, wrap=tk.WORD)
+        self.log_text.pack(fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(self.log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.log_text.config(yscrollcommand=scrollbar.set)
 
         # 创建开始和停止按钮
         start_icon = Image.open("ooo.png")  # 确保图片路径正确
@@ -293,10 +293,14 @@ class BloodPressureMonitor:
                                f"血压状态: {status}\n")
                 self.log_queue.put(log_message)
 
+                # 打印日志到终端
+                print(log_message)
+
                 time.sleep(sampling_period)
             except ValueError as e:
                 error_message = f"输入错误: {e}\n"
                 self.log_queue.put(error_message)
+                print(error_message)  # 打印错误信息到终端
                 break
 
     def process_queue(self):
