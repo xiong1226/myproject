@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
+import tkinter.messagebox
 
 class BloodPressureMonitor:
     def __init__(self, root):
@@ -403,7 +404,39 @@ class BloodPressureMonitor:
         plt.grid(True)
         plt.show()
 
+class LoginWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("登录")
+        self.root.geometry("300x200")
+
+        self.label_username = ttk.Label(self.root, text="用户名:")
+        self.label_username.pack(pady=10)
+        self.entry_username = ttk.Entry(self.root)
+        self.entry_username.pack(pady=5)
+
+        self.label_password = ttk.Label(self.root, text="密码:")
+        self.label_password.pack(pady=10)
+        self.entry_password = ttk.Entry(self.root, show="*")
+        self.entry_password.pack(pady=5)
+
+        self.login_button = ttk.Button(self.root, text="登录", command=self.login)
+        self.login_button.pack(pady=20)
+
+    def login(self):
+        username = self.entry_username.get()
+        password = self.entry_password.get()
+
+        # 简单的验证逻辑
+        if username == "111" and password == "222":
+            self.root.destroy()
+            main_root = tk.Tk()
+            app = BloodPressureMonitor(main_root)
+            main_root.mainloop()
+        else:
+            tkinter.messagebox.showerror("错误", "用户名或密码错误")
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = BloodPressureMonitor(root)
+    login_app = LoginWindow(root)
     root.mainloop()
