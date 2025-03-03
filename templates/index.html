@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>参数设置和日志界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 800px;
+            margin: 0 auto;
+        }
+        .param-setting {
+            margin-bottom: 20px;
+        }
+        .log {
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .plots {
+            display: flex;
+            justify-content: space-between;
+        }
+        .plot {
+            width: 45%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="param-setting">
+            <h2>参数设置</h2>
+            <form id="paramForm">
+                <label for="samplingPeriod">采样周期 (秒):</label>
+                <input type="number" id="samplingPeriod" name="samplingPeriod" value="1" min="0.1" step="0.1" required>
+                <br>
+                <label for="numThreads">线程数量:</label>
+                <input type="number" id="numThreads" name="numThreads" value="1" min="1" max="10" required>
+                <br>
+                <button type="button" id="startButton">开始</button>
+                <button type="button" id="stopButton" disabled>停止</button>
+                <button type="button" id="clearButton">清理日志</button>
+            </form>
+        </div>
+        <div class="log">
+            <h2>日志</h2>
+            <textarea id="logText" rows="10" cols="80" readonly></textarea>
+        </div>
+        <div class="controls">
+            <button type="button" id="plotButton">绘图</button>
+        </div>
+        <div class="plots">
+            <div class="plot">
+                <h3>血压数据点分布</h3>
+                <img id="pressurePlot" src="" alt="血压数据点分布">
+            </div>
+            <div class="plot">
+                <h3>心率变化</h3>
+                <img id="heartRatePlot" src="" alt="心率变化">
+            </div>
+        </div>
+        <div class="plots">
+            <div class="plot">
+                <h3>体温变化</h3>
+                <img id="temperaturePlot" src="" alt="体温变化">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('startButton').addEventListener('click', function() {
+            const samplingPeriod = document.getElementById('samplingPeriod').value;
+            const numThreads = document.getElementById('numThreads').value;
+            fetch('/start_logging', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `sampling_period=${samplingPeriod}&num_threads=${numThreads}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    document.getElementById('startButton').disabled = true;
+                    document.getElementById('stopButton').disabled = false;
+                }
+            });
+        });
+
+        document.getElementById('stopButton').addEventListener('click', function() {
+            fetch('/stop_logging', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'stopped') {
+                    document.getElementById('startButton').disabled = false;
+                    document.getElementById('stopButton').disabled = true;
+                }
+            });
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            fetch('/clear_logs', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'cleared') {
+                    document.getElementById('logText').value = '';
+                }
+            });
+        });
+
+        document.getElementById('plotButton').addEventListener('click', function() {
+            fetch('/plot_data', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pressurePlot').src = 'data:image/png;base64,' + data.pressurePlot;
+                document.getElementById('heartRatePlot').src = 'data:image/png;base64,' + data.heartRatePlot;
+                document.getElementById('temperaturePlot').src = 'data:image/png;base64,' + data.temperaturePlot;
+            });
+        });
+
+        setInterval(function() {
+            fetch('/get_logs')
+            .then(response => response.json())
+            .then(data => {
+                const logText = document.getElementById('logText');
+                data.logs.forEach(log => {
+                    logText.value += log;
+                });
+                logText.scrollTop = logText.scrollHeight;
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

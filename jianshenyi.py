@@ -13,10 +13,10 @@ from PIL import Image, ImageTk
 class BloodPressureMonitor:
     def __init__(self, root):
         self.root = root
-        self.root.title("参数设置和日志界面")
+        self.root.title("智能健身衣模拟器")
         self.root.geometry("800x600")
 
-        self.background_image = Image.open("221.jpg")  # 确保图片路径正确
+        self.background_image = Image.open("1.jpg")  # 确保图片路径正确
         self.background_photo = ImageTk.PhotoImage(self.background_image)
         self.background_label = tk.Label(self.root, image=self.background_photo)
         self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
@@ -86,6 +86,13 @@ class BloodPressureMonitor:
         scrollbar = ttk.Scrollbar(self.log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.log_text.config(yscrollcommand=scrollbar.set)
+
+        # 添加日志背景图片
+        log_background_image = Image.open("1.jpg")  # 确保图片路径正确
+        log_background_photo = ImageTk.PhotoImage(log_background_image)
+        self.log_background_label = tk.Label(self.log_frame, image=log_background_photo)
+        self.log_background_label.image = log_background_photo  # 保持对图片的引用，防止被垃圾回收
+        self.log_background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # 创建开始和停止按钮
         start_icon = Image.open("ooo.png")  # 确保图片路径正确
