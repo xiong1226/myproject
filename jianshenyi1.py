@@ -15,7 +15,12 @@ class BloodPressureMonitor:
     def __init__(self, root):
         self.root = root
         self.root.title("Smart Fitness Wearable Simulator")
-        self.root.geometry("800x600")
+        self.root.geometry("1000x800")
+
+        self.background_image = Image.open("1.jpg")  # 确保图片路径正确
+        self.background_photo = ImageTk.PhotoImage(self.background_image)
+        self.background_label = tk.Label(self.root, image=self.background_photo)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         self.stop_event = threading.Event()
         self.log_queue = queue.Queue()
@@ -30,6 +35,8 @@ class BloodPressureMonitor:
         self.temperatures = []  # 新增列表用于存储体温数据
         self.temperature_statuses = []  # 新增列表用于存储体温状态
         self.calories_burned = []  # 新增列表用于存储卡路里消耗数据
+        self.breathing_rates = []  # 新增列表用于存储呼吸频率数据
+        self.breathing_rate_statuses = []  # 新增列表用于存储呼吸频率状态
 
         self.create_widgets()
         self.setup_layout()
@@ -50,28 +57,34 @@ class BloodPressureMonitor:
         self.param_spinbox7 = ttk.Spinbox(self.param_frame_left, from_=1, to=10, increment=1, width=5)
         self.param_spinbox7.grid(row=1, column=1, padx=10, pady=10)
 
-        self.param_label1 = ttk.Label(self.param_frame_left, text="舒张压均值:")
-        self.param_label1.grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        self.param_entry1 = ttk.Entry(self.param_frame_left, state=tk.DISABLED)
-        self.param_entry1.grid(row=2, column=1, padx=10, pady=10)
+        # 新增均值设置输入框
+        self.param_label8 = ttk.Label(self.param_frame_left, text="收缩压均值:")
+        self.param_label8.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.param_entry8 = ttk.Entry(self.param_frame_left)
+        self.param_entry8.grid(row=2, column=1, padx=10, pady=10)
 
-        self.param_frame_right = ttk.LabelFrame(self.root, text="Parameter Settings (Right)")
-        self.param_frame_right.grid(row=0, column=1, padx=20, pady=0, sticky="nsew")
+        self.param_label9 = ttk.Label(self.param_frame_left, text="舒张压均值:")
+        self.param_label9.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+        self.param_entry9 = ttk.Entry(self.param_frame_left)
+        self.param_entry9.grid(row=3, column=1, padx=10, pady=10)
 
-        self.param_label2 = ttk.Label(self.param_frame_right, text="舒张压方差:")
-        self.param_label2.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.param_entry2 = ttk.Entry(self.param_frame_right, state=tk.DISABLED)
-        self.param_entry2.grid(row=0, column=1, padx=10, pady=10)
+        self.param_label10 = ttk.Label(self.param_frame_left, text="心率均值:")
+        self.param_label10.grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        self.param_entry10 = ttk.Entry(self.param_frame_left)
+        self.param_entry10.grid(row=4, column=1, padx=10, pady=10)
 
-        self.param_label3 = ttk.Label(self.param_frame_right, text="收缩压均值:")
-        self.param_label3.grid(row=1, column=0, padx=10, pady=10, sticky="w")
-        self.param_entry3 = ttk.Entry(self.param_frame_right, state=tk.DISABLED)
-        self.param_entry3.grid(row=1, column=1, padx=10, pady=10)
+        self.param_label11 = ttk.Label(self.param_frame_left, text="体温均值:")
+        self.param_label11.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        self.param_entry11 = ttk.Entry(self.param_frame_left)
+        self.param_entry11.grid(row=5, column=1, padx=10, pady=10)
 
-        self.param_label4 = ttk.Label(self.param_frame_right, text="收缩压方差:")
-        self.param_label4.grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        self.param_entry4 = ttk.Entry(self.param_frame_right, state=tk.DISABLED)
-        self.param_entry4.grid(row=2, column=1, padx=10, pady=10)
+        self.param_label12 = ttk.Label(self.param_frame_left, text="呼吸频率均值:")
+        self.param_label12.grid(row=6, column=0, padx=10, pady=10, sticky="w")
+        self.param_entry12 = ttk.Entry(self.param_frame_left)
+        self.param_entry12.grid(row=6, column=1, padx=10, pady=10)
+
+        
+
 
         # 创建日志板块
         self.log_frame = ttk.LabelFrame(self.root, text="日志")
@@ -84,20 +97,31 @@ class BloodPressureMonitor:
         self.log_text.config(yscrollcommand=scrollbar.set)
 
         # 创建开始和停止按钮
+        start_icon = Image.open("ooo.png")  # 确保图片路径正确
+        start_icon = start_icon.resize((30, 30), Image.LANCZOS)
+        self.start_photo = ImageTk.PhotoImage(start_icon)
         self.start_button = ttk.Button(self.root, text="开始", command=self.start_logging)
         self.start_button.grid(row=2, column=0, padx=10, pady=10, sticky="e")
 
+        stop_icon = Image.open("ooo.png")  # 确保图片路径正确
+        stop_icon = stop_icon.resize((30, 30), Image.LANCZOS)
+        self.stop_photo = ImageTk.PhotoImage(stop_icon)
         self.stop_button = ttk.Button(self.root, text="停止", command=self.stop_logging, state=tk.DISABLED)
         self.stop_button.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
         # 创建清理日志按钮
-        self.clear_button = ttk.Button(self.root, text="清理日志", command=self.clear_log)
+        clear_icon = Image.open("ooo.png")  # 确保图片路径正确
+        clear_icon = clear_icon.resize((30, 30), Image.LANCZOS)
+        self.clear_photo = ImageTk.PhotoImage(clear_icon)
+        self.clear_button = ttk.Button(self.root, text="清除日志", command=self.clear_log)
         self.clear_button.grid(row=2, column=2, padx=10, pady=10, sticky="w")
 
         # 创建绘图按钮
+        plot_icon = Image.open("ooo.png")  # 确保图片路径正确
+        plot_icon = plot_icon.resize((30, 30), Image.LANCZOS)
+        self.plot_photo = ImageTk.PhotoImage(plot_icon)
         self.plot_button = ttk.Button(self.root, text="绘图", command=self.plot_data)
         self.plot_button.grid(row=2, column=3, padx=10, pady=10, sticky="w")
-
 
     def setup_layout(self):
         self.root.grid_rowconfigure(0, weight=2)  # 参数设置区域权重更大
@@ -130,11 +154,11 @@ class BloodPressureMonitor:
 
     def determine_heart_rate_status(self, heart_rate):
         if 60 <= heart_rate <= 100:
-            return "Normal"
+            return "心率正常"
         elif heart_rate < 60:
-            return "low"
+            return "心率过低"
         else:
-            return "high"
+            return "心率过高"
 
     def determine_temperature_status(self, temperature):
         if 36.1 <= temperature <= 37.2:
@@ -143,6 +167,14 @@ class BloodPressureMonitor:
             return "体温过低"
         else:
             return "体温过高"
+
+    def determine_breathing_rate_status(self, breathing_rate):
+        if 12 <= breathing_rate <= 20:
+            return "Normal"
+        elif breathing_rate < 12:
+            return "low"
+        else:
+            return "high"
 
     def start_logging(self):
         try:
@@ -173,18 +205,18 @@ class BloodPressureMonitor:
         if self.diastolic_pressures:
             diastolic_mean = sum(self.diastolic_pressures) / len(self.diastolic_pressures)
             diastolic_variance = sum((x - diastolic_mean) ** 2 for x in self.diastolic_pressures) / len(self.diastolic_pressures)
-            self.param_entry1.config(state=tk.NORMAL)
-            self.param_entry1.delete(0, tk.END)
-            self.param_entry1.insert(0, f"{diastolic_mean:.2f}")
-            self.param_entry1.config(state=tk.DISABLED)
+            self.param_entry8.config(state=tk.NORMAL)
+            self.param_entry8.delete(0, tk.END)
+            self.param_entry8.insert(0, f"{diastolic_mean:.2f}")
+            self.param_entry8.config(state=tk.DISABLED)
 
         if self.systolic_pressures:
             systolic_mean = sum(self.systolic_pressures) / len(self.systolic_pressures)
             systolic_variance = sum((x - systolic_mean) ** 2 for x in self.systolic_pressures) / len(self.systolic_pressures)
-            self.param_entry3.config(state=tk.NORMAL)
-            self.param_entry3.delete(0, tk.END)
-            self.param_entry3.insert(0, f"{systolic_mean:.2f}")
-            self.param_entry3.config(state=tk.DISABLED)
+            self.param_entry9.config(state=tk.NORMAL)
+            self.param_entry9.delete(0, tk.END)
+            self.param_entry9.insert(0, f"{systolic_mean:.2f}")
+            self.param_entry9.config(state=tk.DISABLED)
 
             self.param_entry2.config(state=tk.NORMAL)
             self.param_entry2.delete(0, tk.END)
@@ -195,6 +227,30 @@ class BloodPressureMonitor:
             self.param_entry4.delete(0, tk.END)
             self.param_entry4.insert(0, f"{systolic_variance:.2f}")
             self.param_entry4.config(state=tk.DISABLED)
+
+        if self.heart_rates:
+            heart_rate_mean = sum(self.heart_rates) / len(self.heart_rates)
+            heart_rate_variance = sum((x - heart_rate_mean) ** 2 for x in self.heart_rates) / len(self.heart_rates)
+            self.param_entry10.config(state=tk.NORMAL)
+            self.param_entry10.delete(0, tk.END)
+            self.param_entry10.insert(0, f"{heart_rate_mean:.2f}")
+            self.param_entry10.config(state=tk.DISABLED)
+
+        if self.temperatures:
+            temperature_mean = sum(self.temperatures) / len(self.temperatures)
+            temperature_variance = sum((x - temperature_mean) ** 2 for x in self.temperatures) / len(self.temperatures)
+            self.param_entry11.config(state=tk.NORMAL)
+            self.param_entry11.delete(0, tk.END)
+            self.param_entry11.insert(0, f"{temperature_mean:.2f}")
+            self.param_entry11.config(state=tk.DISABLED)
+
+        if self.breathing_rates:
+            breathing_rate_mean = sum(self.breathing_rates) / len(self.breathing_rates)
+            breathing_rate_variance = sum((x - breathing_rate_mean) ** 2 for x in self.breathing_rates) / len(self.breathing_rates)
+            self.param_entry12.config(state=tk.NORMAL)
+            self.param_entry12.delete(0, tk.END)
+            self.param_entry12.insert(0, f"{breathing_rate_mean:.2f}")
+            self.param_entry12.config(state=tk.DISABLED)
 
         # 保存数据到CSV文件
         self.save_to_csv()
@@ -262,11 +318,19 @@ class BloodPressureMonitor:
                 calories_burned = random.uniform(0, 500)  # 卡路里消耗范围0-500
                 self.calories_burned.append(calories_burned)
 
+                # 生成呼吸频率数据
+                breathing_rate = random.randint(12, 20)  # 呼吸频率范围12-20次/分钟
+                breathing_rate_status = self.determine_breathing_rate_status(breathing_rate)
+
+                self.breathing_rates.append(breathing_rate)
+                self.breathing_rate_statuses.append(breathing_rate_status)
+
                 log_message = (f"time: {timestamp} - "
                                f"diastolic pressure: {diastolic_pressure:.2f}, systolic pressure: {systolic_pressure:.2f}, "
                                f"heart rate: {heart_rate}, heart rate stat: {heart_rate_status}, "
                                f"temperature: {temperature}, temperature status: {temperature_status}, "
                                f"calories burned: {calories_burned:.2f}, "
+                               f"breathing rate: {breathing_rate}, breathing rate stat: {breathing_rate_status}, "
                                f"blood pressure status: {status}\n")
                 self.log_queue.put(log_message)
 
@@ -314,7 +378,9 @@ class BloodPressureMonitor:
             '心率状态': self.heart_rate_statuses,
             '体温': self.temperatures,
             '体温状态': self.temperature_statuses,
-            '卡路里消耗': rounded_calories_burned,  # 新增卡路里消耗列
+            '卡路里消耗': rounded_calories_burned,
+            '呼吸频率': self.breathing_rates,  # 新增呼吸频率列
+            '呼吸频率状态': self.breathing_rate_statuses,  # 新增呼吸频率状态列
             '血压状态': self.statuses
         }
         df = pd.DataFrame(data)
@@ -385,11 +451,29 @@ class BloodPressureMonitor:
         plt.grid(True)
         plt.show()
 
+        # 绘制呼吸频率数据
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.timestamps, self.breathing_rates, label='呼吸频率')
+        plt.axhline(y=12, color='red', linestyle='--', label='正常呼吸频率下限')
+        plt.axhline(y=20, color='red', linestyle='--', label='正常呼吸频率上限')
+        plt.xlabel('时间')
+        plt.ylabel('呼吸频率 (次/分钟)')
+        plt.title('呼吸频率变化')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
 class LoginWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("登录")
-        self.root.geometry("300x200")
+        self.root.geometry("400x250")
+
+        # 添加背景图片
+        self.background_image = Image.open("1.jpg")  # 确保图片路径正确
+        self.background_photo = ImageTk.PhotoImage(self.background_image)
+        self.background_label = tk.Label(self.root, image=self.background_photo)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         self.label_username = ttk.Label(self.root, text="用户名:")
         self.label_username.pack(pady=10)
