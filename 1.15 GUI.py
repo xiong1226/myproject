@@ -4,12 +4,17 @@ import random
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
+import csv  # 添加csv模块
 
 # 全局变量
 step_count = 0
 distance = 0.0
 calories = 0.0
 start_time = time.time()
+data_update_running = False  # 添加标志变量
+csv_file = open('data.csv', 'w', newline='')  # 打开CSV文件
+csv_writer = csv.writer(csv_file)  # 创建CSV写入对象
+csv_writer.writerow(['时间', '心率', '呼吸率', '体温', '血压', '步数', '运动距离', '消耗的卡路里', '运动时长', '运动评级'])  # 写入表头
 
 # 运动评级阈值
 HEART_RATE_THRESHOLD = {'low': 60, 'high': 100}  # 心率阈值
@@ -32,7 +37,7 @@ def welcome_screen():
 
 # 主界面
 def main_screen():
-    global step_count, distance, calories, start_time
+    global step_count, distance, calories, start_time, data_update_running  # 添加data_update_running到全局变量
 
     main_window = tk.Toplevel()
     main_window.title("智能健身衣 - 主界面")
@@ -62,7 +67,10 @@ def main_screen():
     emg_data = [0] * 10  # 初始化肌电图数据
 
     def update_data():
-        global step_count, distance, calories, start_time
+        global step_count, distance, calories, start_time, data_update_running  # 添加data_update_running到全局变量
+
+        if not data_update_running:  # 检查标志变量
+            return  # 如果数据更新未开始，则返回
 
         # 更新步数、距离、卡路里和运动时长
         step_count += random.randint(1, 3)
@@ -77,11 +85,11 @@ def main_screen():
         blood_pressure = f"{random.randint(110, 130)}/{random.randint(70, 80)}"
 
         # 更新实时数据
-        entries['心率'].config(text=str(heart_rate))
-        entries['呼吸率'].config(text=str(breath_rate))
-        entries['体温'].config(text=f"{body_temp:.1f}°C")
+        entries['心率'].config(text=f"{heart_rate:.2f}")
+        entries['呼吸率'].config(text=f"{breath_rate:.2f}")
+        entries['体温'].config(text=f"{body_temp:.2f}°C")
         entries['血压'].config(text=blood_pressure)
-        entries['步数'].config(text=str(step_count))
+        entries['步数'].config(text=f"{step_count:.2f}")
         entries['运动距离'].config(text=f"{distance:.2f} 米")
         entries['消耗的卡路里'].config(text=f"{calories:.2f} 卡")
         entries['运动时长'].config(text=f"{int(elapsed_time // 60)} 分 {int(elapsed_time % 60)} 秒")
@@ -106,23 +114,39 @@ def main_screen():
         ax.set_title("肌电图")
         canvas.draw()
 
+        # 写入CSV文件
+        csv_writer.writerow([time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), heart_rate, breath_rate, f"{body_temp:.2f}", blood_pressure, f"{step_count:.2f}", f"{distance:.2f}", f"{calories:.2f}", f"{elapsed_time:.2f}", rating])
+
         # 每隔1秒更新一次
         main_window.after(1000, update_data)
 
-    update_data()
+    def start_data_update():
+        global data_update_running
+        data_update_running = True
+        update_data()  # 启动数据更新
+
+    def stop_data_update():
+        global data_update_running
+        data_update_running = False
 
     # 操作按钮
     frame_buttons = ttk.Frame(main_window)
     frame_buttons.pack(padx=10, pady=(0, 10))
 
+    start_button = ttk.Button(frame_buttons, text="开始", command=start_data_update)  # 添加开始按钮
+    start_button.grid(row=0, column=0, padx=5, pady=5)
+
+    stop_button = ttk.Button(frame_buttons, text="停止", command=stop_data_update)  # 添加停止按钮
+    stop_button.grid(row=0, column=1, padx=5, pady=5)
+
     log_button = ttk.Button(frame_buttons, text="生成工作日志", command=lambda: [main_window.destroy(), log_screen()])
-    log_button.grid(row=0, column=0, padx=5, pady=5)
+    log_button.grid(row=0, column=2, padx=5, pady=5)
 
     back_button = ttk.Button(frame_buttons, text="返回主界面", command=lambda: [main_window.destroy(), welcome_screen()])
-    back_button.grid(row=0, column=1, padx=5, pady=5)
+    back_button.grid(row=0, column=3, padx=5, pady=5)
 
     exit_button = ttk.Button(frame_buttons, text="退出", command=lambda: [main_window.destroy(), exit_screen()])
-    exit_button.grid(row=0, column=2, padx=5, pady=5)
+    exit_button.grid(row=0, column=4, padx=5, pady=5)
 
 # 工作日志界面
 def log_screen():

@@ -43,6 +43,8 @@ class BloodPressureMonitor:
         self.process_queue()
 
     def create_widgets(self):
+        
+
         # 创建参数设置板块
         self.param_frame_left = ttk.LabelFrame(self.root, text="Parameter Settings (Left)")
         self.param_frame_left.grid(row=0, column=0, padx=20, pady=0, sticky="nsew")
@@ -123,6 +125,7 @@ class BloodPressureMonitor:
         self.plot_button = ttk.Button(self.root, text="绘图", command=self.plot_data)
         self.plot_button.grid(row=2, column=3, padx=10, pady=10, sticky="w")
 
+        
     def setup_layout(self):
         self.root.grid_rowconfigure(0, weight=2)  # 参数设置区域权重更大
         self.root.grid_rowconfigure(1, weight=1)  # 日志区域权重更小
@@ -493,7 +496,7 @@ class LoginWindow:
         password = self.entry_password.get()
 
         # 简单的验证逻辑
-        if username == "111" and password == "222":
+        if username == "20242410" and password == "1226":
             self.root.destroy()
             main_root = tk.Tk()
             app = BloodPressureMonitor(main_root)
